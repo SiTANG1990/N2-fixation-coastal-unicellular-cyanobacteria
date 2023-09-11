@@ -1,0 +1,228 @@
+# Growth after ATP addition
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet16")
+attach(ST)
+ST
+
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("None","Na","NH4","Gln","ATP"))
+
+anova <- aov(size ~ number, data = ST)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#f2f0f7','#fc9272','#6a51a3',
+                              '#ef3b2c','#9e9ac8','#decbe4',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+  geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 15
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Compound added")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+    scale_y_continuous(
+    limits = c(-3*10^6,2*10^7),
+    #breaks = seq(-1*10^6, 3*10^7, by=1*10^7),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  theme(legend.title=element_blank(),
+        legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=48, colour = "black"),
+        axis.title=element_text(size=55,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")+
+  scale_x_discrete("Compound added", labels = c(expression(None),
+                                                expression(NaCl),expression(ATP),
+                                                expression(NH[4]),
+                                                expression(Gln)))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+# Nitrogenase content after ATP addition
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet13")
+attach(ST)
+ST
+
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("Na","Gln","ATP","BG11"))
+ST
+
+anova <- aov(size ~ number, data = ST)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#fc9272','#fb9a99','#6a51a3','#fdbf6f',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+  geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 15
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Compound added")+
+  ylab(~ paste("Nitrogenase content ",(ng~ per~10^8~cells)))+
+  
+  scale_y_continuous(
+    limits = c(0,900))+
+theme(legend.title=element_blank(),
+      legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=48, colour = "black"),
+        axis.title=element_text(size=55,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")+
+  scale_x_discrete("Compound added", labels = c(expression(NaCl),expression(Gln),expression(ATP),
+                                                expression(NaNO[3])
+  ))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+# ATP ADP experiment
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet39")
+attach(ST)
+ST
+
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("None","AMP","ADP", 
+                               "ATP"))
+
+anova <- aov(size ~ number, data = ST)
+summary(anova)
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#f2f0f7','#bcbddc','#6a51a3','#decbe4',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+  geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 15
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Compound added")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+  
+  scale_y_continuous(
+    limits = c(0,2*10^7),
+    breaks = seq(0, 2*10^7, by=5*10^6),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  theme(legend.title=element_blank(),
+        legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=48, colour = "black"),
+        axis.title=element_text(size=55,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")
+
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+
+
+
+
