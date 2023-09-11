@@ -1,0 +1,78 @@
+# Annual salinity dynamics
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+ST <- read_excel("C:/Users/Si/Desktop/ST3.xlsx", sheet = "Sheet4")
+attach(ST)
+ST
+ST$Year = factor(ST$Year)
+plot = ggboxplot(ST, x = "Month", y="Salinity")+
+  facet_wrap(.~Location, ncol = 4)+
+  geom_jitter(
+    shape =1,
+    size=2, alpha=0.9)+
+  ylab("Salinity")+
+    theme(legend.title=element_blank())+
+  theme(legend.position = c(0.08,0.96),
+        legend.text=element_text(size=25))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=25, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"),
+        axis.title.x=element_blank())+
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))+
+  theme(strip.text.x = element_text(size = 23),strip.text.y = element_text(size = 40))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm")) 
+  plot
+
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =60, height =40, units = "cm",dpi = 300)
+
+# Annual Temperature dynamics
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+ST <- read_excel("C:/Users/Si/Desktop/ST3.xlsx", sheet = "Sheet5")
+attach(ST)
+
+ST
+ST$Month = factor(ST$Month, levels = c("Jan.","Feb.",'Mar.','Apr.','May','June','July','Aug.','Sept.','Oct.','Nov.','Dec.'))
+
+plot = ggplot(ST,aes(y=Tem,x=Month,group=Location))+
+  geom_line(size = 2.5, 
+            aes(color=Location))+
+  geom_point(size=6,stroke=1.5, pch=21)+
+    #         aes(shape=Location))+
+  scale_color_manual(
+  values=c('#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'))
+plot
+
+plot
+plot+ 
+  xlab("")+
+  ylab(~ paste("Average temperature "))+
+  scale_y_continuous(
+    limits = c(0,45))+
+  theme_light()+
+  theme(legend.position = c(0.18, 0.83),
+        legend.text=element_text(size=25),legend.title=element_text(size=25))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(legend.title = element_blank(),legend.text=element_text(size=30))+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.background =element_rect(fill="white"))+
+  theme(strip.text.x = element_text(size = 35, colour = 1),strip.text.y = element_text(size = 40))+
+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm")) 
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =60, height =40, units = "cm",dpi = 300)
+  
+
+
+
