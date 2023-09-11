@@ -1,0 +1,187 @@
+# Upregulated and downregulated DEGs
+library(readxl)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet28")
+attach(ST)
+
+library(reshape2)
+library(dplyr)
+ST
+
+library(ggplot2)
+library(scales)
+
+plot = ggplot(ST,aes(fill=gene, y= number,x=gene))+
+  geom_bar(stat = "identity", color = "black", position=position_dodge(), width =0.6,size=1.5)+
+  geom_text(aes(label = number), vjust = -0.5, size=20 )
+plot
+  
+plot = plot + ylab("Number of DEGs")+
+  xlab("")+
+  scale_fill_manual(values = c('#a6cee3','#fb9a99','#6baed6','#feedde'))+
+  scale_y_continuous(
+    limits = c(0,4000),
+    breaks = seq(0,4000, by=1000),
+    #expand = c(0, 0)
+  )+
+  
+  theme_light()+
+  theme(legend.position = "none")+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=38, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"),
+  )+
+  
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =25, height =40, units = "cm",dpi = 300)
+
+# KEGG enrichment analysis
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet29")
+attach(ST)
+ST
+
+plot <- ggplot(ST, aes(rich, path,size = number, color = Pvalue)) + 
+  geom_point() +   
+  scale_color_gradient(
+                        guide=guide_colourbar(reverse = TRUE)
+
+                        )
+
+plot
+plot <- plot + xlab("") + 
+  theme(panel.grid.major = element_line(colour = "lightgrey"), axis.text.y = element_text(colour = "black", size = 12),
+        axis.text.x = element_text(colour = "black", size = 12, angle = 0),
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(face = "bold", size = 7),
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 0.7), 
+        legend.title = element_blank(),
+        legend.text = element_text(colour = "black", size = 10, face = "bold"),
+        
+        legend.key = element_rect(fill = "white"),
+        strip.text.y = element_text(size = 7, color = "black", face = "bold"),
+        strip.text.x = element_text(size = 7, color = "black", face = "bold"),
+        strip.background.y = element_rect(color = "black", fill = "#ededed", size = 0.5, linetype = "solid"), 
+        strip.background.x = element_rect(color = "white", fill = "white", size = 0.5, linetype = "solid"))
+plot
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =13.5, height =10, units = "cm",dpi = 300)
+
+# nifHDK & P limitation genes
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+library(ggplot2)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet22")
+attach(ST)
+ST
+
+ST$number <- factor(ST$number, 
+                    levels = c("nifH","nifD","nifK","pstA","pstB","pstS"))
+
+plot = ggboxplot(ST, x = "type", y="size", size = 2,fill = "#0a9f87")+
+
+  facet_grid(
+
+    treat~number
+
+    ,scales = "free"
+  )
+
+plot = plot+
+  ylab("")+
+  theme(legend.title=element_blank())+
+  theme(legend.position = c(0.08,0.96),
+        legend.text=element_text(size=25))+
+  theme(
+    panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(panel.spacing = unit(3, "lines"))+
+  theme(
+    axis.text=element_text(size=35, colour = "black"),
+    axis.title=element_text(size=50,colour = "black"),
+    axis.title.x=element_blank())+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5))+
+  theme(strip.text.x = element_text(size = 45),strip.text.y = element_text(size = 45, colour = "white"))+
+  theme(strip.text.x =  element_text(face = "italic"))+
+  theme(strip.background.x =element_rect(fill="#e0e0e0"))+
+  theme(strip.background.y =element_rect(fill="#0a9f87"))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm")) 
+plot
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =60, height =20, units = "cm",dpi = 300)
+
+$ Heatmap analysis
+
+library(ComplexHeatmap)
+library(grid)
+library(RColorBrewer)
+library(WGCNA)
+library(pheatmap)
+ST <- read.csv("C:/Users/Si/Desktop/ST8.CSV"
+               ,row.names=1
+               ) # only CSV file works
+attach(ST)
+ST
+dim(ST)
+
+annotation_col = data.frame(
+  Additive=  c(rep("NaCl",3),rep("None",3)) 
+  ,row.names = colnames(ST)
+)
+rownames(annotation_col) = colnames(ST)
+annotation_row = data.frame(
+  Metabolism= factor(rep(c("PSII","Cytochrome",
+                           "PSI","ATPsynthase",
+                           "Allophycocyanin","Phycocyanin"), c(19,8,12,8,3,9)))
+)
+rownames(annotation_row) = row.names(ST)
+
+newnames <- lapply(
+  rownames(ST),
+  function(x) bquote(italic(.(x))))
+
+ann_colors = list(
+  # Time = c("white", "firebrick"),
+  Additive = c(NaCl = "#fc9272", None = "#f2f0f7"),
+  Metabolism = c(Allophycocyanin = "#e41a1c", Phycocyanin = "#377eb8",  PSII = "#4daf4a", Cytochrome="#984ea3", 
+                  PSI = "#ff7f00", ATPsynthase ="#ffff33")
+    )
+
+plot = pheatmap(as.matrix(ST)
+                ,scale="row",
+                annotation_col = annotation_col, annotation_row = annotation_row, 
+                annotation_colors = ann_colors,
+                row_names_gp = gpar(fontsize = 20),
+                # color = colorRampPalette(c("blue", "white", "red"))(50, 0.75),
+                color = colorRampPalette(c("#6495ED", "white", "#d87474"))(50),
+                cutree_rows = 2,
+                cutree_cols = 2,
+                fontsize=20,
+                fontsize_col = 20,
+                cluster_rows=FALSE,
+                angle_col =45,
+                legend_breaks = c(-1, 0, 1),
+                treeheight_col = 10,
+                gaps_row = c(19, 27,39,47,50,59),
+                cellwidth = 40, cellheight = 20
+)
+save_pheatmap_png <- function(x, filename, width=4800, height=5600, res = 300) {
+  png(filename, width = width, height = height, res = res)
+  grid::grid.newpage()
+  grid::grid.draw(x$gtable)
+  dev.off()
+}
+save_pheatmap_png(plot, "my_heatmap.png")
+
