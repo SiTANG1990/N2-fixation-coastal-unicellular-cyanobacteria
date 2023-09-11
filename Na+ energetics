@@ -1,0 +1,145 @@
+# Monensin, DTHB experiment
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet44")
+attach(ST)
+
+ST
+
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("None","Monensin","DTHB"))
+ST$time_Fac = factor(ST$time)
+str(ST)
+
+anova <- aov(size ~ number*time_Fac, data = ST)
+summary(anova)
+
+data_summary <- group_by(ST, number, time) %>%
+  summarise(mean=mean(size), sd=sd(size)) %>%
+  arrange(desc(mean))
+print(data_summary)
+
+
+tukey <- TukeyHSD(anova)
+tukey
+
+tukey.cld <- multcompLetters4(anova, tukey)
+tukey.cld
+
+cld <- as.data.frame.list(tukey.cld$`number:time_Fac`)
+cld
+data_summary$Tukey <- cld$Letters
+print(data_summary)
+
+
+plot = ggplot(data_summary, aes(x = time, y = mean, fill = number)) + 
+  geom_bar(stat = "identity", position = "dodge",size=2)  +
+  geom_errorbar(aes(ymin = mean-sd, ymax=mean+sd), position = position_dodge(0.9), width = 0.25,size=1)+
+  geom_text(aes(label=Tukey), position = position_dodge(0.90), size = 12, 
+            vjust=-6, hjust=0.5, colour = "gray25")+
+  scale_fill_manual(
+    labels=c(expression(None),expression(Monensin),expression(DTHB)),
+    values = c('#f2f0f7','#43a2ca','#fcbba1','#feedde'))
+plot+ 
+  #xlab("NaCl (mM)")+
+  xlab("")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+  
+  scale_y_continuous(
+    limits = c(-1*10^6, 2*10^8),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  
+  
+  
+  theme_light()+
+  guides(fill=guide_legend(title="Compound added"))+
+  theme(legend.position = c(0.18, 0.91),
+        legend.text=element_text(size=38),legend.title=element_text(size=38))+
+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  scale_x_discrete(labels = c(expression(BG11),expression(BG11+NaCl),expression(BG11[0]),expression(BG11[0]+NaCl)
+  ))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+# DCCD experiment
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet41")
+attach(ST)
+ST
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("None","DCCD"))
+ST$time_Fac = factor(ST$time)
+str(ST)
+
+anova <- aov(size ~ number*time_Fac, data = ST)
+summary(anova)
+
+data_summary <- group_by(ST, number, time) %>%
+  summarise(mean=mean(size), sd=sd(size)) %>%
+  arrange(desc(mean))
+print(data_summary)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+tukey.cld <- multcompLetters4(anova, tukey)
+tukey.cld
+
+cld <- as.data.frame.list(tukey.cld$`number:time_Fac`)
+cld
+data_summary$Tukey <- cld$Letters
+print(data_summary)
+
+
+plot = ggplot(data_summary, aes(x = time, y = mean, fill = number)) + 
+  geom_bar(stat = "identity", position = "dodge")  +
+  geom_errorbar(aes(ymin = mean-sd, ymax=mean+sd), position = position_dodge(0.9), width = 0.25,size=1)+
+  geom_text(aes(label=Tukey), position = position_dodge(0.90), size = 12, 
+            vjust=-6, hjust=0.5, colour = "gray25")+
+  scale_fill_manual(
+    labels=c(expression(None),expression(DCCD),expression(DTHB)),
+    values = c('#f2f0f7','#969696','#fcbba1','#feedde'))
+plot+ 
+  xlab("")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+  
+  scale_y_continuous(
+    limits = c(-1*10^6, 2*10^8),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  
+  
+  
+  theme_light()+
+  guides(fill=guide_legend(title="Compound added"))+
+  theme(legend.position = c(0.18, 0.93),
+        legend.text=element_text(size=38),legend.title=element_text(size=38))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  #theme(legend.title = element_blank())+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  scale_x_discrete(labels = c(expression(BG11),expression(BG11+NaCl),expression(BG11[0]),expression(BG11[0]+NaCl)
+  ))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
