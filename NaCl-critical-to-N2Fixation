@@ -1,0 +1,328 @@
+# Growth in four different medium
+library(readxl)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet7")
+attach(ST)
+
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+melted <- melt(ST, id.vars=c("time", "type"))
+grouped <- group_by(melted,time,type)
+grouped$time = factor(grouped$time)
+grouped$type = factor(grouped$type)
+grouped$type <- factor(grouped$type, 
+                       levels = c("ASP2","ASP2N", "BG11","BG110"
+                                  ))
+df = summarise(grouped, avg = mean(value), sd = sd(value))
+df
+plot = ggplot(df,aes(y=avg,x=time,group=type))+
+  geom_point(size=10,pch=21,stroke=1.5)+
+  geom_line(size = 4, aes(color=type))+
+  scale_color_manual(
+    labels = c("ASP2","ASP2-N","BG11",expression(BG11[0])),
+    values=c('#fb8072','#b3de69','#80b1d3','#fccde5')
+    )+
+geom_errorbar(aes(
+    ymin = avg-sd, 
+    ymax = avg + sd),
+    linewidth = 2, 
+    width = 0.2, 
+    position = "identity", colour= "black")
+plot
+plot +xlab("Time (day)")+
+  ylab(~ paste("Number of cells ", (mL ^ -1)))+
+  scale_y_continuous(
+    limits = c(0,2*10^8),
+    label= function(x) {ifelse(x==0, "0", 
+                               parse(text=gsub("[+]", "", 
+                                               gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  
+  theme_light()+
+  theme(legend.title = element_blank(),legend.position = c(0.14, 0.90),
+        legend.text=element_text(size=45))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+theme(axis.text=element_text(size=48, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  guides(color = guide_legend(
+    override.aes=list(shape = 20)))
+ggsave('C:/Users/Si/Desktop/ggplot05.jpeg',width =40, height = 40, units ="cm", dpi = 300)
+
+
+# The addition of NaCl
+
+library(readxl)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet45")
+attach(ST)
+library(reshape2)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+melted <- melt(ST, id.vars=c("time", "type"))
+grouped <- group_by(melted,time,type)
+grouped$time = factor(grouped$time)
+grouped$type <- factor(grouped$type, 
+                       levels = c(
+                                  "BG110+NaCl","BG110"))
+df = summarise(grouped, avg = mean(value), sd = sd(value))
+df
+
+plot = ggplot(df,aes(y=avg,x=time,group=type))+
+  geom_point(size=10,pch=21,stroke=1.5)+
+ 
+geom_line(size = 4, aes(color=type))+
+  
+  scale_color_manual(labels = c(expression(BG11[0]~+NaCl),expression(BG11[0])),
+                     
+                     values=c('#fdb462','#fccde5','#cab2d6','#fdbf6f','#e6ab02'))+
+  geom_errorbar(aes(
+    ymin = avg-sd, 
+    ymax = avg + sd),
+    linewidth = 2, 
+    width = 0.2, 
+    position = "identity", colour= "black")
+    
+plot
+
+plot +xlab("Time (day)")+
+  ylab(~ paste("Number of cells ", (mL ^ -1)))+
+  scale_y_continuous(
+    limits = c(0,1.5*10^7),
+label= function(x) {ifelse(x==0, "0", 
+                               parse(text=gsub("[+]", "", 
+                                               gsub("e", " %*% 10^", scientific_format()(x)))))})+
+ 
+  
+theme_light()+
+  theme(legend.title = element_blank(),legend.position = c(0.23, 0.91),
+        legend.text=element_text(size=45))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=45, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  guides(color = guide_legend(
+    override.aes=list(shape = 20)))
+ggsave('C:/Users/Si/Desktop/ggplot05.jpeg',width =40, height = 40, units ="cm", dpi = 300)
+
+
+# BG11 NaCl gradients
+
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet19")
+attach(ST)
+ST
+ST$number = factor(ST$number)
+anova <- aov(size ~ number, data = ST)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+  geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 10
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Salinity")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+scale_y_continuous(
+    limits = c(-2*10^6,2*10^8),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+
+  theme(legend.title=element_blank(),
+        legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+
+# BG110 NaCl gradients
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet9")
+attach(ST)
+ST
+ST$number = factor(ST$number)
+anova <- aov(size ~ number, data = ST)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 10
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Salinity")+
+  ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+  scale_y_continuous(
+    limits = c(-2*10^6,2*10^8),
+    label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+                                                          gsub("e", " %*% 10^", scientific_format()(x)))))})+
+
+theme(legend.title=element_blank(),
+      legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+
+# Acetylene Reduction to test N2 fixation activity
+
+library(readxl)
+library(ggpubr)
+library(dplyr)
+library(rstatix)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet6")
+attach(ST)
+ST
+ST$number = factor(ST$number)
+anova <- aov(size ~ number, data = ST)
+
+tukey <- TukeyHSD(anova)
+tukey
+
+cld <- multcompLetters4(anova, tukey)
+cld
+
+Tk <- group_by(ST, number) %>%
+  summarise(mean=mean(size), quant = quantile(size, probs = 1)) %>%
+  arrange(desc(mean))
+
+cld <- as.data.frame.list(cld$number)
+Tk$cld <- cld$Letters
+Tk
+
+
+plot <- ggbarplot(ST, x = "number", y = "size",add = "mean_se",
+                  fill = "number",
+                  palette = c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99',
+                              '#e31a1c','#fdbf6f','#ff7f00',
+                              '#cab2d6','#6a3d9a','#ffff99','#b15928','#e0e0e0','#4d4d4d')
+                  ,size = 1.5
+                  ,width = 0.8
+                  ,add.params = list(size = 1.5)
+                  
+)+
+  geom_text(data = Tk, aes(x =number, y = quant, 
+                           label = cld), size = 10
+            , vjust=-0.5, hjust =0.5
+  )
+plot
+
+plot+ 
+  xlab("Salinity")+
+  ylab("")+
+
+   scale_y_continuous(
+     limits = c(0,100))+
+
+theme(legend.title=element_blank(),
+      legend.position = c(0.9, 0.9))+
+  theme(legend.position = c(0.85, 0.92),
+        legend.text=element_text(size=45))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=40, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(legend.key.size = unit(3,"line"))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =40, height =40, units = "cm",dpi = 300)
+
+
+
