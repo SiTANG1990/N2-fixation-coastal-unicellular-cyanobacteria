@@ -1,0 +1,48 @@
+# Chlorophyll, protein, dry weight, Protein ratio, Fv/Fm
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet3")
+attach(ST)
+ST
+plot <- ggbarplot(ST, x = "number", y = "size", add = "mean_sd",add.params = list(size = 1.5), fill = "number",
+                  size =1.5,
+                  palette = c('#f2f0f7','#fc9272','#ccebc5','#decbe4','#fed9a6','#ffffcc'),
+                  position = position_dodge(0.8),
+                  error.plot = "upper_errorbar",
+)+
+  stat_compare_means(aes(group = number), label = "p.signif", 
+                     label.y = c(2),
+                     label.x = (1.4), method = "t.test",size = 25)
+
+plot
+
+plot+ 
+  xlab("Compound added")+
+  ylab(~ paste("Total protein ",(mg~ per~10^8~cells)))+
+# ylab("Photosynthetic activity (Fv/Fm value)")+
+#  ylab(~ paste("Chlorophyll ",(μg~ per~10^8~cells)))+
+#ylab(~ paste("Dry weight ",(mg~ per~10^8~cells)))+
+
+  
+  scale_y_continuous(
+    limits = c(0,3.5))+
+
+theme(legend.title=element_blank())+
+  theme(legend.position = c(0.06,0.96),
+        legend.text=element_text(size=25))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.text=element_text(size=45, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"),
+  )+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")+
+  scale_x_discrete(labels = c(expression(None),expression(NaCl)
+  ))
+ggsave('C:/Users/Si/Desktop/ggplot06.jpg', width =20, height =40, units = "cm",dpi = 300)
+
