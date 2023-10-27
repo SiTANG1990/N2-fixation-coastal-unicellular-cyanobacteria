@@ -1,0 +1,61 @@
+library(readxl)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet54")
+attach(ST)
+
+library(reshape2)
+library(dplyr)
+
+ST$treat <- factor(ST$treat, 
+                         levels = c("Freshwater","Marine" ))
+ST$length <- factor(ST$length, 
+                    levels = c("Low","Medium","High"
+                               ))
+ST$label <- factor(ST$label, 
+                      levels = c("Unicellular","Multicellular"))
+
+ST$salinity <- factor(ST$salinity, 
+                    levels = c("No","Yes"))
+ST
+
+
+
+library(ggplot2)
+library(scales)
+
+plot = ggplot(ST,aes(fill=salinity,y= number,x=length))+
+
+  geom_bar(stat="identity", size=1.5,color="black")+
+  facet_grid(label ~ treat, 
+             scales = "free"
+             )+
+  scale_fill_manual(values = c('#FB9A99','#E31A1C','#e0e0e0','#feedde'))+
+  scale_y_continuous(
+    limits = c(0,60)
+    )
+plot
+plot + 
+  xlab("Proton selectivity")+
+  ylab(~ paste("Percentage of species "))+
+  theme_light()+
+  #theme(legend.position = "none")+
+  guides(fill=guide_legend(title="Nitrogen fixation"))+
+  theme(legend.position = c(0.15, 0.925),
+        legend.text=element_text(size=40), legend.title=element_text(size=45))+
+  theme(axis.text=element_text(size=45, colour = "black"),
+        axis.title=element_text(size=65,colour = "black"))+
+  theme(strip.text.x = element_text(size = 50),strip.text.y = element_text(size = 50)
+        )+
+  theme(strip.background =element_rect(fill="#d9d9d9"))+
+  theme(strip.text = element_text(colour = 'black'))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  theme(panel.spacing = unit(.05, "lines"),
+        panel.border = element_rect(color = "black", fill = NA, size = 2), 
+        strip.background = element_rect(color = "black", size = 1.5))+
+  #scale_x_discrete(guide = guide_axis(n.dodge = 2)) 
+  scale_x_discrete(labels=c("Low+Medium/High","Medium","High"))+
+  theme(plot.margin = margin(0,0,0,1, "cm"))
+ggsave('C:/Users/Si/Desktop/ggplot05.jpg', width =50, height =56, units = "cm",dpi = 300)
