@@ -1,0 +1,95 @@
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet74")
+attach(ST)
+#https://cran.r-project.org/web/packages/ggsignif/vignettes/intro.html
+#https://www.r-bloggers.com/2017/06/add-p-values-and-significance-levels-to-ggplots/
+
+ST
+#ST$treatment <- factor(ST$treatment, levels = c("Nitrogen deprivation","Osmotic pressure","Extreme illumination",
+#                                               "Total darkness"))
+
+plot <- ggbarplot(ST, x = "number", y = "size", add = "mean_sd",add.params = list(size = 1.5), fill = "number",
+                  size =1.5,
+                  #palette = c('#f2f0f7','#fc9272','#ccebc5','#decbe4','#fed9a6','#ffffcc'),
+                  palette = c('#f2f0f7','#fc9272','#ccebc5','#decbe4','#fed9a6','#ffffcc'),
+                  position = position_dodge(0.8),
+                  #error.plot = "upper_errorbar",
+                   facet.by = "type"
+                  #)
+                  #,scales = "free"
+)+
+  stat_compare_means(aes(group = number), label = "p.signif", 
+                     label.y = c(3.2),
+                     label.x = (1.4), method = "t.test",size = 25)+
+  geom_jitter(width = 0.4,size =4, shape=5,stroke=2)
+
+
+
+#compare_means(number ~ time, data = ST, 
+#             group.by = "length", method = "t.test")
+
+
+
+#stat_compare_means(label = "p.format", method = "t.test")+
+#stat_compare_means(aes(group = time), label = "p.signif", label.y = (27000),
+#                   label.x = (1.5), method = "t.test")
+
+plot
+
+
+plot+ 
+  xlab("Treatment")+
+  #ylab("Ratio of cellular dry weight")+
+   ylab("Enzymatic activity")+
+  # ylab("Weight per cell (pg)")+
+  #ylab(~ paste("Dry weight ",(mg~ per~10^8~cells)))+
+  #ylab(~ paste("Number of cells ",(mL ^ -1)))+
+  
+ # scale_y_continuous(
+ #   limits = c(0,3.5))+
+  
+  #  scale_y_continuous(
+  #   limits = c(0,5*10^5),
+  #   # breaks = seq(0, 7*10^6, by=2*10^6),
+  #   expand = c(0, 0),
+  #   label= function(x) {ifelse(x==0, "0", 
+  #                             parse(text=gsub("[+]", "", 
+  #                                              gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  
+  
+  
+#theme_light()+
+#theme(plot.margin = margin(1, 1, 1, 1, "cm"))+
+
+#guides(fill=guide_legend(title="Time (h)"))+
+#guides(fill=guide_legend(title=""))+
+theme(legend.title=element_blank())+
+  theme(legend.position = c(0.06,0.96),
+        legend.text=element_text(size=25))+
+  #, legend.title=element_text(size=45)
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  #theme(legend.title = element_blank())+
+  theme(axis.text=element_text(size=45, colour = "black"),
+        axis.title=element_text(size=50,colour = "black"),
+        #axis.title.x=element_blank()
+  )+
+  #theme(axis.text.x = element_text(angle = 45, vjust = 0.5))+
+  theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  
+  
+  #theme(legend.text=element_text(size=25))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+ 
+  theme(legend.position = "none")
+#  scale_x_discrete(labels = c(expression(None),expression(NaCl)
+ # ))
+#theme(axis.title.x=element_blank()
+
+
+ggsave('C:/Users/Si/Desktop/ggplot06.pdf', width =20, height =40, units = "cm",dpi = 1200)
+#dev.off()
