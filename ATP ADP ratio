@@ -1,0 +1,97 @@
+library(readxl)
+library(ggpubr)
+library(rstatix)
+library(ggplot2)
+library(dplyr)
+library(multcompView)
+ST <- read_excel("C:/Users/Si/Desktop/ST11.xlsx", sheet = "Sheet94")
+attach(ST)
+#https://cran.r-project.org/web/packages/ggsignif/vignettes/intro.html
+#https://www.r-bloggers.com/2017/06/add-p-values-and-significance-levels-to-ggplots/
+
+ST
+
+ST$number = factor(ST$number)
+ST$number <- factor(ST$number, 
+                    levels = c("None","NaCl"))
+ST$time_Fac = factor(ST$time)
+str(ST)
+
+anova <- aov(size ~ number*time_Fac, data = ST)
+summary(anova)
+
+data_summary <- group_by(ST, number, time) %>%
+  summarise(mean=mean(size), sd=sd(size)) %>%
+  arrange(desc(mean))
+print(data_summary)
+
+
+tukey <- TukeyHSD(anova)
+tukey
+
+tukey.cld <- multcompLetters4(anova, tukey)
+tukey.cld
+
+cld <- as.data.frame.list(tukey.cld$`number:time_Fac`)
+cld
+data_summary$Tukey <- cld$Letters
+print(data_summary)
+
+
+plot = ggplot(data_summary, aes(x = time, y = mean, fill = number)) + 
+  geom_bar(stat = "identity", position = "dodge",size=1.5,color="black")  +
+  geom_errorbar(aes(ymin = mean-sd, ymax=mean+sd), position = position_dodge(0.9), width = 0.25,size=1.5)+
+  geom_text(aes(label=Tukey), position = position_dodge(0.90), size = 14, 
+            vjust=-6, hjust=0.5, colour = "gray25")+
+  scale_fill_manual(
+    labels=c(expression(None),expression(NaCl)),
+    values = c('#f2f0f7','#fc9272','#feedde'))
+#scale_fill_discrete(labels=c('High Program', 'Low Program',"0"))
+plot+ 
+  #xlab("NaCl (mM)")+
+  xlab("Time after adding NaCl (minute)")+
+  #ylab(~ paste("Increase in cell number ",(mL ^ -1)))+
+  ylab(~ paste("ATP/ADP ratio "))+
+  #ylab(~ paste("Growth ",(day ^ -1)))+
+  #ylab(~ paste("Survival rate "))+
+  
+  scale_y_continuous(
+    limits = c(0, 0.8),
+    breaks = seq(0, 0.8, by=0.2))+
+    #label= function(x) {ifelse(x==0, "0", parse(text=gsub("[+]", "", 
+   #                                                       gsub("e", " %*% 10^", scientific_format()(x)))))})+
+  
+  
+  
+  theme_light()+
+  #theme(legend.position = "none")+
+  guides(fill=guide_legend(title="Compound added"))+
+  # theme(legend.position = c(0.9, 0.87),
+  #       legend.text=element_text(size=35), legend.title=element_text(size=35))+
+  theme(legend.position = c(0.23, 0.92),
+        legend.text=element_text(size=40),legend.title=element_text(size=45))+
+  
+  #, legend.title=element_text(size=45)
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=2))+
+  #theme(legend.title = element_blank())+
+  theme(axis.text=element_text(size=48, colour = "black"),
+        axis.text.x = element_text(size = 41),
+        axis.title=element_text(size=55,colour = "black"))+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.6))+
+  # theme(strip.text.x = element_text(size = 40),strip.text.y = element_text(size = 40))+
+  #  theme(legend.key.size = unit(3,"line"))+
+  
+  
+  #theme(legend.text=element_text(size=25))+
+  theme(axis.ticks = element_line(size = 2,colour = "black"))+
+  theme(axis.ticks.length=unit(0.4, "cm"))+
+  scale_x_discrete(labels = c(expression(0),expression(10),expression(30),expression(60)
+  ))
+
+
+#theme(legend.position = "none")
+#theme(axis.title.x=element_blank()
+
+
+ggsave('C:/Users/Si/Desktop/ggplot06.pdf', width =40, height =40, units = "cm",dpi = 1200)
